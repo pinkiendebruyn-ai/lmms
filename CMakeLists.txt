@@ -566,6 +566,9 @@ IF(WANT_JACK)
 ENDIF(WANT_JACK)
 
 # check for FFTW3F-library
+set(FFTW_INCLUDE_DIR "C:/Users/Henri/Desktop/lmms_github_fork/build/deps/fftw-prebuilt/prebuilt-fftw-3.3.10-windows-main/include" CACHE PATH "FFTW include dir")
+set(FFTW3F_LIBRARY "C:/Users/Henri/Desktop/lmms_github_fork/build/deps/fftw-prebuilt/prebuilt-fftw-3.3.10-windows-main/lib/fftw3f.lib" CACHE FILEPATH "FFTW3F library")
+set(FFTW3_LIBRARY "C:/Users/Henri/Desktop/lmms_github_fork/build/deps/fftw-prebuilt/prebuilt-fftw-3.3.10-windows-main/lib/fftw3.lib" CACHE FILEPATH "FFTW3 library")
 FIND_PACKAGE(FFTW COMPONENTS fftw3f REQUIRED)
 
 # check for FLTK

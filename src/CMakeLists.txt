@@ -107,6 +107,24 @@ ADD_LIBRARY(lmmsobjs OBJECT
 	${LMMS_RCC_OUT}
 )
 
+# Enable precompiled headers to drastically reduce compile times
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+	if(NOT MSVC)
+		target_precompile_headers(lmmsobjs PRIVATE
+			<vector>
+			<string>
+			<memory>
+			<atomic>
+			<algorithm>
+			<QtCore>
+			<QtGui>
+			<QtWidgets>
+			<QObject>
+			<QString>
+		)
+	endif()
+endif()
+
 GENERATE_EXPORT_HEADER(lmmsobjs
 	BASE_NAME lmms
 )
