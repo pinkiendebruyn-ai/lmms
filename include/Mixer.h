@@ -64,6 +64,7 @@ public:
 	QMutex m_lock;
 	bool m_queued; // are we queued up for rendering yet?
 	bool m_muted; // are we muted? updated per period so we don't have to call m_muteModel.value() twice
+	std::atomic<bool> m_forceMute{false};
 
 	// pointers to other channels that this one sends to
 	MixerRouteVector m_sends;
@@ -80,6 +81,7 @@ public:
 	void unmuteForSolo();
 	void unmuteSenderForSolo();
 	void unmuteReceiverForSolo();
+	void setForceMute(bool b) { m_forceMute.store(b); }
 
 	auto color() const -> const std::optional<QColor>& { return m_color; }
 	void setColor(const std::optional<QColor>& color) { m_color = color; }

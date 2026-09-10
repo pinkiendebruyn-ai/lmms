@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE lmms-project>
+<lmms-project version="1.0" type="song">
+  <head/>
+  <song>
+    <trackcontainer type="song" visible="1">
+      <!-- Track 1: Instrument Track assigned to Mixer Channel 1 -->
+      <track name="Synth Alpha" type="0" muted="0" soloed="0">
+        <instrumenttrack mixerch="1"/>
+      </track>
+      
+      <!-- Track 2: Instrument Track assigned to Mixer Channel 2 -->
+      <track name="Synth Beta" type="0" muted="0" soloed="0">
+        <instrumenttrack mixerch="2"/>
+      </track>
+      
+      <!-- Track 3: The Automation Track that triggers the bug in old builds -->
+      <track name="Volume Automation" type="6" muted="0" soloed="0">
+        <automationtrack>
+          <!-- Targets Track 1 (Synth Alpha) Mute status -->
+          <object connection="Synth Alpha/muted"/>
+          <pattern>
+            <!-- Automation nodes to toggle values over time -->
+            <node time="0" value="0"/>
+            <node time="48" value="1"/>
+            <node time="96" value="0"/>
+          </pattern>
+        </automationtrack>
+      </track>
+    </trackcontainer>
+  </song>
+</lmms-project>

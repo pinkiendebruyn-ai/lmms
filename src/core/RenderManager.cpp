@@ -27,6 +27,11 @@
 
 #include "RenderManager.h"
 
+#include "Engine.h"
+#include "Mixer.h"
+#include "InstrumentTrack.h"
+#include "SampleTrack.h"
+
 #include "PatternStore.h"
 #include "Song.h"
 
@@ -75,10 +80,61 @@ void RenderManager::renderNextTrack()
 		Track* renderTrack = m_tracksToRender.back();
 		m_tracksToRender.pop_back();
 
-		// mute everything but the track we are about to render
+		// Clear any previous force-mute state from all channels
+		const mix_ch_t numChannels = Engine::mixer()->numChannels();
+		for (mix_ch_t ch = 0; ch < numChannels; ++ch)
+		{
+			MixerChannel* channel = Engine::mixer()->mixerChannel(ch);
+			if (channel) {
+				channel->setForceMute(false);
+			}
+		}
+
+		// Determine the mixer channel index of the active render track
+		int renderingChannelIndex = -1;
+		if (renderTrack->type() == Track::Type::Instrument)
+		{
+			InstrumentTrack* instTrack = static_cast<InstrumentTrack*>(renderTrack);
+			if (instTrack->mixerChannelModel()) {
+				renderingChannelIndex = instTrack->mixerChannelModel()->value();
+			}
+		}
+		else if (renderTrack->type() == Track::Type::Sample)
+		{
+			SampleTrack* sampleTrack = static_cast<SampleTrack*>(renderTrack);
+			if (sampleTrack->mixerChannelModel()) {
+				renderingChannelIndex = sampleTrack->mixerChannelModel()->value();
+			}
+		}
+
+		// Force-mute all non-rendering tracks, except Master (index 0) and the rendering track's own channel
 		for (auto track : m_unmuted)
 		{
-			track->setMuted(track != renderTrack);
+			if (track == renderTrack) { continue; }
+
+			int channelIndex = -1;
+			if (track->type() == Track::Type::Instrument)
+			{
+				InstrumentTrack* instTrack = static_cast<InstrumentTrack*>(track);
+				if (instTrack->mixerChannelModel()) {
+					channelIndex = instTrack->mixerChannelModel()->value();
+				}
+			}
+			else if (track->type() == Track::Type::Sample)
+			{
+				SampleTrack* sampleTrack = static_cast<SampleTrack*>(track);
+				if (sampleTrack->mixerChannelModel()) {
+					channelIndex = sampleTrack->mixerChannelModel()->value();
+				}
+			}
+
+			if (channelIndex > 0 && channelIndex != renderingChannelIndex && channelIndex < numChannels)
+			{
+				MixerChannel* channel = Engine::mixer()->mixerChannel(channelIndex);
+				if (channel) {
+					channel->setForceMute(true);
+				}
+			}
 		}
 
 		// for multi-render, prefix each output file with a different number
@@ -156,14 +212,17 @@ void RenderManager::render(QString outputPath)
 	}
 }
 
-// Unmute all tracks that were muted while rendering tracks
+// Clear the force-mute flag on all channels that were affected during export
 void RenderManager::restoreMutedState()
 {
+	for (mix_ch_t ch = 0; ch < Engine::mixer()->numChannels(); ++ch)
+	{
+		Engine::mixer()->mixerChannel(ch)->setForceMute(false);
+	}
+
 	while (!m_unmuted.empty())
 	{
-		Track* restoreTrack = m_unmuted.back();
 		m_unmuted.pop_back();
-		restoreTrack->setMuted( false );
 	}
 }
 
