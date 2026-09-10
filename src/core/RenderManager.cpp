@@ -81,20 +81,30 @@ void RenderManager::renderNextTrack()
 		m_tracksToRender.pop_back();
 
 		// Clear any previous force-mute state from all channels
-		for (mix_ch_t ch = 0; ch < Engine::mixer()->numChannels(); ++ch)
+		const mix_ch_t numChannels = Engine::mixer()->numChannels();
+		for (mix_ch_t ch = 0; ch < numChannels; ++ch)
 		{
-			Engine::mixer()->mixerChannel(ch)->setForceMute(false);
+			MixerChannel* channel = Engine::mixer()->mixerChannel(ch);
+			if (channel) {
+				channel->setForceMute(false);
+			}
 		}
 
 		// Determine the mixer channel index of the active render track
 		int renderingChannelIndex = -1;
 		if (renderTrack->type() == Track::Type::Instrument)
 		{
-			renderingChannelIndex = static_cast<InstrumentTrack*>(renderTrack)->mixerChannelModel()->value();
+			InstrumentTrack* instTrack = static_cast<InstrumentTrack*>(renderTrack);
+			if (instTrack->mixerChannelModel()) {
+				renderingChannelIndex = instTrack->mixerChannelModel()->value();
+			}
 		}
 		else if (renderTrack->type() == Track::Type::Sample)
 		{
-			renderingChannelIndex = static_cast<SampleTrack*>(renderTrack)->mixerChannelModel()->value();
+			SampleTrack* sampleTrack = static_cast<SampleTrack*>(renderTrack);
+			if (sampleTrack->mixerChannelModel()) {
+				renderingChannelIndex = sampleTrack->mixerChannelModel()->value();
+			}
 		}
 
 		// Force-mute all non-rendering tracks, except Master (index 0) and the rendering track's own channel
@@ -105,14 +115,20 @@ void RenderManager::renderNextTrack()
 			int channelIndex = -1;
 			if (track->type() == Track::Type::Instrument)
 			{
-				channelIndex = static_cast<InstrumentTrack*>(track)->mixerChannelModel()->value();
+				InstrumentTrack* instTrack = static_cast<InstrumentTrack*>(track);
+				if (instTrack->mixerChannelModel()) {
+					channelIndex = instTrack->mixerChannelModel()->value();
+				}
 			}
 			else if (track->type() == Track::Type::Sample)
 			{
-				channelIndex = static_cast<SampleTrack*>(track)->mixerChannelModel()->value();
+				SampleTrack* sampleTrack = static_cast<SampleTrack*>(track);
+				if (sampleTrack->mixerChannelModel()) {
+					channelIndex = sampleTrack->mixerChannelModel()->value();
+				}
 			}
 
-			if (channelIndex != 0 && channelIndex != renderingChannelIndex)
+			if (channelIndex > 0 && channelIndex != renderingChannelIndex && channelIndex < numChannels)
 			{
 				MixerChannel* channel = Engine::mixer()->mixerChannel(channelIndex);
 				if (channel) {
