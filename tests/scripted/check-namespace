@@ -79,7 +79,9 @@ exclude_files = re.compile(
     'plugins/Sf2Player/fluidsynthshims.h|'
     '/portsmf/|'
     # only forward to headers that are not ours:
-    'plugins/ZynAddSubFx/ThreadShims.h'
+    'plugins/ZynAddSubFx/ThreadShims.h|'
+    # exclude intentional mock/test namespace failures:
+    'tests/core/namespace_checks/|'
 )
 
 files = [Path(f) for f in result.stdout.splitlines() if not exclude_files.search(f)]
